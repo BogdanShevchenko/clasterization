@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>Кластеризація</title>
+        <script src="//d3js.org/d3.v3.min.js"></script>
+    </head>
+    <body>
+        <p>63-вимірний простір ознак, зпроектований у двовимірний простір (за допомогою метода головних компонент)</p>
+        <p>Кластери, що включають більш ніж 10 точок виділені кольорами</p>
+        <script type="text/javascript">
+            //перероблена версія цього: http://bl.ocks.org/weiglemc/6185069
+
+            var margin = {top: 20, right: 20, bottom: 30, left: 40},
+                width = 960 - margin.left - margin.right,
+                height = 500 - margin.top - margin.bottom;
+            // setup x
+            var xValue = function(d) { return d.x;}, // data -> value
+                xScale = d3.scale.linear().range([0, width]), // value -> display
+                xMap = function(d) { return xScale(xValue(d));}, // data -> display
+                xAxis = d3.svg.axis().scale(xScale).orient("bottom");
+            // setup y
+            var yValue = function(d) { return d.y;}, // data -> value
+                yScale = d3.scale.linear().range([height, 0]), // value -> display
+                yMap = function(d) { return yScale(yValue(d));}, // data -> display
+                yAxis = d3.svg.axis().scale(yScale).orient("left");
+            // setup fill color
+            var cValue = function(d) { return d.cl_num;},
+                color = d3.scale.category10();
+            // add the graph canvas to the body of the webpage
+            var svg = d3.select("body").append("svg")
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom)
+              .append("g")
+                .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+            // add the tooltip area to the webpage
+            var tooltip = d3.select("body").append("div")
+                .attr("class", "tooltip")
+                .style("opacity", 0);
+            // load data
+            d3.csv("/all_points_csv", function(error, data) {
+              // change string (from CSV) into number format
+              data.forEach(function(d) {
+                d.x = +d.x;
+                d.y = +d.y;
+            //    console.log(d);
+              });
+              xScale.domain([d3.min(data, xValue), d3.max(data, xValue)]);
+              yScale.domain([d3.min(data, yValue), d3.max(data, yValue)]);
+              // draw dots
+              svg.selectAll(".dot")
+                  .data(data)
+                .enter().append("circle")
+                  .attr("class", "dot")
+                  .attr("r", 3.5)
+                  .attr("cx", xMap)
+                  .attr("cy", yMap)
+                  .style("fill", function(d) { return color(cValue(d));})
+                  .attr("stroke-opacity", function(d) {if (d.cl_num==-1) {return 0.1} else {return 1};})
+                  .attr("fill-opacity", function(d) {if (d.cl_num==-1) {return 0.1} else {return 1};});
+            });
+        </script>
+        </body>
+    </html>
